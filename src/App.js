@@ -4,8 +4,8 @@ src/App.js
 This is the top-level component of the app.
 It contains the top-level state.
 ==================================================*/
-import React, {Component} from 'react';
-import {BrowserRouter as Router, Route} from 'react-router-dom';
+import React, { Component } from 'react';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 // Import other components
 import Home from './components/Home';
@@ -15,46 +15,72 @@ import Credits from './components/Credits';
 import Debits from './components/Debits';
 
 class App extends Component {
-  constructor() {  // Create and initialize state
-    super(); 
+  constructor() {
+    super();
+    // Initialize state
     this.state = {
       accountBalance: 1234567.89,
-      creditList: [],
-      debitList: [],
+      creditList: [], // Ensure this is initialized as an empty array
+      debitList: [], // Ensure this is initialized as an empty array
       currentUser: {
-        userName: 'Joe Smith',
+        userName: 'Achapko200', // Updated username
         memberSince: '11/22/99',
       }
     };
   }
 
   // Update state's currentUser (userName) after "Log In" button is clicked
-  mockLogIn = (logInInfo) => {  
-    const newUser = {...this.state.currentUser};
+  mockLogIn = (logInInfo) => {
+    const newUser = { ...this.state.currentUser };
     newUser.userName = logInInfo.userName;
-    this.setState({currentUser: newUser})
+    this.setState({ currentUser: newUser });
+  }
+
+  // Calculate the updated account balance based on credits and debits
+  updateAccountBalance = () => {
+    const totalCredits = Array.isArray(this.state.creditList)
+      ? this.state.creditList.reduce((total, credit) => total + credit.amount, 0)
+      : 0;
+    const totalDebits = Array.isArray(this.state.debitList)
+      ? this.state.debitList.reduce((total, debit) => total + debit.amount, 0)
+      : 0;
+    return this.state.accountBalance + totalCredits - totalDebits;
   }
 
   // Create Routes and React elements to be rendered using React components
-  render() {  
+  render() {
     // Create React elements and pass input props to components
-    const HomeComponent = () => (<Home accountBalance={this.state.accountBalance} />)
+    const HomeComponent = () => (
+      <Home accountBalance={this.updateAccountBalance()} /> // Use the updated balance
+    );
     const UserProfileComponent = () => (
-      <UserProfile userName={this.state.currentUser.userName} memberSince={this.state.currentUser.memberSince} />
-    )
-    const LogInComponent = () => (<LogIn user={this.state.currentUser} mockLogIn={this.mockLogIn} />)
-    const CreditsComponent = () => (<Credits credits={this.state.creditList} />) 
-    const DebitsComponent = () => (<Debits debits={this.state.debitList} />) 
+      <UserProfile 
+        userName={this.state.currentUser.userName} 
+        memberSince={this.state.currentUser.memberSince} 
+      />
+    );
+    const LogInComponent = () => (
+      <LogIn user={this.state.currentUser} mockLogIn={this.mockLogIn} />
+    );
+    const CreditsComponent = () => (
+      <Credits credits={this.state.creditList} />
+    );
+    const DebitsComponent = () => (
+      <Debits 
+        debits={this.state.debitList} 
+        addDebit={this.addDebit} // Add this method to handle new debits
+      />
+    );
 
     // Important: Include the "basename" in Router, which is needed for deploying the React app to GitHub Pages
     return (
-      <Router basename="/bank-of-react-starter-code">
+      <Router basename="/my-react-app">
         <div>
-          <Route exact path="/" render={HomeComponent}/>
-          <Route exact path="/userProfile" render={UserProfileComponent}/>
-          <Route exact path="/login" render={LogInComponent}/>
-          <Route exact path="/credits" render={CreditsComponent}/>
-          <Route exact path="/debits" render={DebitsComponent}/>
+          <Route exact path="/" render={HomeComponent} />
+          <Route exact path="/userProfile" render={UserProfileComponent} />
+          <Route exact path="/login" render={LogInComponent} />
+          <Route exact path="/credits" render={CreditsComponent} />
+          <Route exact path="/debits" render={DebitsComponent} />
         </div>
       </Router>
     );
