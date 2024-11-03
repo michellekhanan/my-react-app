@@ -1,10 +1,12 @@
 // src/components/Debits.js
 
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
 function Debits({ debits, accountBalance, addDebit }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const history = useHistory();
 
   const handleAddDebit = () => {
     const parsedAmount = parseFloat(amount);
@@ -23,6 +25,10 @@ function Debits({ debits, accountBalance, addDebit }) {
 
     setDescription('');
     setAmount('');
+  };
+
+  const handleReturnHome = () => {
+    history.push('/'); // Navigate to the Home page
   };
 
   return (
@@ -57,6 +63,9 @@ function Debits({ debits, accountBalance, addDebit }) {
         />
         <button onClick={handleAddDebit}>Add Debit</button>
       </div>
+
+      {/* Return Home button */}
+      <button onClick={handleReturnHome} style={{ marginTop: '20px' }}>Return Home</button>
     </div>
   );
 }
