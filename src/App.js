@@ -1,9 +1,5 @@
-/*==================================================
-src/App.js
+// App.js
 
-This is the top-level component of the app.
-It contains the top-level state.
-==================================================*/
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 
@@ -17,62 +13,70 @@ import Debits from './components/Debits';
 class App extends Component {
   constructor() {
     super();
-    // Initialize state
     this.state = {
-      accountBalance: 1234567.89,
-      creditList: [], // Ensure this is initialized as an empty array
-      debitList: [], // Ensure this is initialized as an empty array
+      accountBalance: 0,
+      creditList: [],
+      debitList: [],
       currentUser: {
-        userName: 'Achapko200', // Updated username
+        userName: 'Achapko200',
         memberSince: '11/22/99',
       }
     };
   }
 
-  // Update state's currentUser (userName) after "Log In" button is clicked
-  mockLogIn = (logInInfo) => {
-    const newUser = { ...this.state.currentUser };
-    newUser.userName = logInInfo.userName;
-    this.setState({ currentUser: newUser });
-  }
-
-  // Calculate the updated account balance based on credits and debits
+  // Method to calculate the updated account balance
   updateAccountBalance = () => {
-    const totalCredits = Array.isArray(this.state.creditList)
-      ? this.state.creditList.reduce((total, credit) => total + credit.amount, 0)
-      : 0;
-    const totalDebits = Array.isArray(this.state.debitList)
-      ? this.state.debitList.reduce((total, debit) => total + debit.amount, 0)
-      : 0;
-    return this.state.accountBalance + totalCredits - totalDebits;
+    const totalCredits = this.state.creditList.reduce((total, credit) => total + parseFloat(credit.amount), 0);
+    const totalDebits = this.state.debitList.reduce((total, debit) => total + parseFloat(debit.amount), 0);
+    return (totalCredits - totalDebits).toFixed(2);
   }
 
-  // Create Routes and React elements to be rendered using React components
+  // Method to add a new credit
+  addCredit = (newCredit) => {
+    this.setState((prevState) => ({
+      creditList: [...prevState.creditList, newCredit]
+    }), () => {
+      this.setState({ accountBalance: this.updateAccountBalance() });
+    });
+  }
+
+  // Method to add a new debit
+  addDebit = (newDebit) => {
+    this.setState((prevState) => ({
+      debitList: [...prevState.debitList, newDebit]
+    }), () => {
+      this.setState({ accountBalance: this.updateAccountBalance() });
+    });
+  }
+
   render() {
-    // Create React elements and pass input props to components
     const HomeComponent = () => (
-      <Home accountBalance={this.updateAccountBalance()} /> // Use the updated balance
+      <Home accountBalance={this.updateAccountBalance()} />
     );
     const UserProfileComponent = () => (
-      <UserProfile 
-        userName={this.state.currentUser.userName} 
-        memberSince={this.state.currentUser.memberSince} 
+      <UserProfile
+        userName={this.state.currentUser.userName}
+        memberSince={this.state.currentUser.memberSince}
       />
     );
     const LogInComponent = () => (
       <LogIn user={this.state.currentUser} mockLogIn={this.mockLogIn} />
     );
     const CreditsComponent = () => (
-      <Credits credits={this.state.creditList} />
+      <Credits
+        credits={this.state.creditList}
+        accountBalance={this.updateAccountBalance()}
+        addCredit={this.addCredit}
+      />
     );
     const DebitsComponent = () => (
-      <Debits 
-        debits={this.state.debitList} 
-        addDebit={this.addDebit} // Add this method to handle new debits
+      <Debits
+        debits={this.state.debitList}
+        accountBalance={this.updateAccountBalance()}
+        addDebit={this.addDebit}
       />
     );
 
-    // Important: Include the "basename" in Router, which is needed for deploying the React app to GitHub Pages
     return (
       <Router basename="/my-react-app">
         <div>

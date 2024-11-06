@@ -1,51 +1,71 @@
-/*==================================================
-src/components/Debits.js
+// src/components/Debits.js
 
-The Debits component contains information for the Debits page view.
-==================================================*/
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 
-const Debits = (props) => {
-  // Create the list of Debit items
-  let debitsView = () => {
-    const { debits } = props;
-    if (!Array.isArray(debits)) {
-      return <li>No debits available</li>; // Handle case when debits is not an array
+function Debits({ debits, accountBalance, addDebit }) {
+  const [description, setDescription] = useState('');
+  const [amount, setAmount] = useState('');
+  const history = useHistory();
+
+  const handleAddDebit = () => {
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || !description) {
+      alert("Please enter a valid description and amount.");
+      return;
     }
-    
-    return debits.map((debit) => {
-      let date = debit.date.slice(0, 10);
-      return (
-        <li key={debit.id}>
-          {debit.amount ? debit.amount.toFixed(2) : '0.00'} {debit.description} {date}
-        </li>
-      );
-    });
+
+    const newDebit = {
+      description,
+      amount: parsedAmount.toFixed(2),
+      date: new Date().toISOString().split('T')[0] // Format: yyyy-mm-dd
+    };
+
+    addDebit(newDebit);
+
+    setDescription('');
+    setAmount('');
   };
 
-  // Calculate total debits if needed
-  const calculateTotalDebits = () => {
-    if (!props.debits || !Array.isArray(props.debits)) {
-      return 0;
-    }
-    return props.debits.reduce((total, debit) => {
-      return total + (debit.amount || 0);
-    }, 0).toFixed(2);
+  const handleReturnHome = () => {
+    history.push('/'); // Navigate to the Home page
   };
 
-  // Render the list of Debit items and a form to input new Debit item
   return (
     <div>
-      <h1>Debits</h1>
-      <h2>Total Debits: ${calculateTotalDebits()}</h2>
-      <ul>{debitsView()}</ul>
-      <form onSubmit={props.addDebit}>
-        <input type="text" name="description" />
-        <input type="number" name="amount" />
-        <button type="submit">Add Debit</button>
-      </form>
-      <br />
-      <Link to="/">Return to Home</Link>
+      <h2>Debits</h2>
+      
+      {/* Display current account balance */}
+      <p>Account Balance: ${parseFloat(accountBalance).toFixed(2)}</p>
+      
+      {/* Display list of debits */}
+      <ul>
+        {debits.map((debit, index) => (
+          <li key={index}>
+            {debit.description} - ${parseFloat(debit.amount).toFixed(2)} on {debit.date}
+          </li>
+        ))}
+      </ul>
+      
+      {/* Input fields to add a new debit */}
+      <div>
+        <input
+          type="text"
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Amount"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <button onClick={handleAddDebit}>Add Debit</button>
+      </div>
+
+      {/* Return Home button */}
+      <button onClick={handleReturnHome} style={{ marginTop: '20px' }}>Return Home</button>
     </div>
   );
 }
