@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 {
   "name": "my-react-app",
+=======
+"name": "my-react-app",
+>>>>>>> 5f7ee7cd2e3d19f31624b18cb42c5d6e5a9ce8cf
   "version": "0.1.0",
   "homepage": "https://Achapko200.github.io/my-react-app/",
   "private": true,
