@@ -1,12 +1,28 @@
 // src/components/Credits.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 
 function Credits({ credits, accountBalance, addCredit }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [fetchedCredits, setFetchedCredits] = useState([]); // State to store fetched credits
   const history = useHistory();
+
+  // Fetch credits from the API when the component mounts
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const response = await fetch('https://johnnylaicode.github.io/api/credits.json');
+        const data = await response.json();
+        setFetchedCredits(data); // Store the fetched credits in state
+      } catch (error) {
+        console.error('Error fetching credits:', error);
+      }
+    };
+
+    fetchCredits();
+  }, []);
 
   const handleAddCredit = () => {
     if (description && amount) {
@@ -21,13 +37,39 @@ function Credits({ credits, accountBalance, addCredit }) {
     }
   };
 
+  const handleReturnHome = () => {
+    history.push('/'); // Navigate to the Home page
+  };
+
   return (
     <div>
-      <h1>Credits</h1>
-      <h3>Account Balance: ${parseFloat(accountBalance).toFixed(2)}</h3> {/* Display balance rounded to 2 decimals */}
+      <h2>Credits</h2>
+      
+      {/* Display current account balance */}
+      <p>Account Balance: ${parseFloat(accountBalance).toFixed(2)}</p>
+      
+      {/* Display list of credits fetched from the API */}
+      <h3>Fetched Credits</h3>
+      <ul>
+        {fetchedCredits.map((credit, index) => (
+          <li key={index}>
+            {credit.description} - ${parseFloat(credit.amount).toFixed(2)} on {credit.date}
+          </li>
+        ))}
+      </ul>
 
+      {/* Display list of credits passed from parent component */}
+      <h3>Your Credits</h3>
+      <ul>
+        {credits.map((credit, index) => (
+          <li key={index}>
+            {credit.description} - ${parseFloat(credit.amount).toFixed(2)} on {credit.date}
+          </li>
+        ))}
+      </ul>
+
+      {/* Input fields to add a new credit */}
       <div>
-        <h2>Add a New Credit</h2>
         <input
           type="text"
           placeholder="Description"
@@ -43,16 +85,8 @@ function Credits({ credits, accountBalance, addCredit }) {
         <button onClick={handleAddCredit}>Add Credit</button>
       </div>
 
-      <h2>Credits List</h2>
-      <ul>
-        {credits.map((credit, index) => (
-          <li key={index}>
-            {credit.description} - ${parseFloat(credit.amount).toFixed(2)} on {credit.date}
-          </li>
-        ))}
-      </ul>
-
-      <button onClick={() => history.push('/')}>Return Home</button> {/* Return Home button */}
+      {/* Return Home button */}
+      <button onClick={handleReturnHome} style={{ marginTop: '20px' }}>Return Home</button>
     </div>
   );
 }

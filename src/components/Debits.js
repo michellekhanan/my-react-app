@@ -1,12 +1,23 @@
-// src/components/Debits.js
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
+import axios from 'axios';
 
 function Debits({ debits, accountBalance, addDebit }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [debtsData, setDebtsData] = useState([]);
   const history = useHistory();
+
+  useEffect(() => {
+    // Fetch Debits API data
+    axios.get('https://johnnylaicode.github.io/api/debits.json')
+      .then((response) => {
+        setDebtsData(response.data); // Set the debits data
+      })
+      .catch((error) => {
+        console.error("There was an error fetching the debits data:", error);
+      });
+  }, []); // Empty dependency array means this effect runs once after the initial render
 
   const handleAddDebit = () => {
     const parsedAmount = parseFloat(amount);
@@ -21,10 +32,10 @@ function Debits({ debits, accountBalance, addDebit }) {
       date: new Date().toISOString().split('T')[0] // Format: yyyy-mm-dd
     };
 
-    addDebit(newDebit);
+    addDebit(newDebit); // Add new debit to the list
 
-    setDescription('');
-    setAmount('');
+    setDescription(''); // Clear the description input
+    setAmount(''); // Clear the amount input
   };
 
   const handleReturnHome = () => {
@@ -38,7 +49,7 @@ function Debits({ debits, accountBalance, addDebit }) {
       {/* Display current account balance */}
       <p>Account Balance: ${parseFloat(accountBalance).toFixed(2)}</p>
       
-      {/* Display list of debits */}
+      {/* Display list of debits from the state */}
       <ul>
         {debits.map((debit, index) => (
           <li key={index}>
@@ -46,7 +57,16 @@ function Debits({ debits, accountBalance, addDebit }) {
           </li>
         ))}
       </ul>
-      
+
+      <h2>Fetched Debits Data</h2>
+      <ul>
+        {debtsData.map((debit, index) => (
+          <li key={index}>
+            {debit.description} - ${parseFloat(debit.amount).toFixed(2)} on {debit.date}
+          </li>
+        ))}
+      </ul>
+
       {/* Input fields to add a new debit */}
       <div>
         <input
