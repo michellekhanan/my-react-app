@@ -1,12 +1,8 @@
-// App.js
-
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
 
-// Import other components
+// Import components
 import Home from './components/Home';
-import UserProfile from './components/UserProfile';
-import LogIn from './components/Login';
 import Credits from './components/Credits';
 import Debits from './components/Debits';
 
@@ -15,76 +11,107 @@ class App extends Component {
     super();
     this.state = {
       accountBalance: 0,
-      creditList: [],
-      debitList: [],
-      currentUser: {
-        userName: 'Achapko200',
-        memberSince: '11/22/99',
-      }
+      credits: [],
+      debits: [],
     };
+  }
+
+  componentDidMount() {
+    // Fetching data for credits and debits from the API
+    Promise.all([
+      fetch('https://johnnylaicode.github.io/api/credits.json').then((res) => res.json()),
+      fetch('https://johnnylaicode.github.io/api/debits.json').then((res) => res.json())
+    ])
+      .then(([credits, debits]) => {
+        this.setState({ credits, debits }, this.updateAccountBalance);
+      })
+      .catch((err) => console.error('Error fetching data: ', err));
   }
 
   // Method to calculate the updated account balance
   updateAccountBalance = () => {
-    const totalCredits = this.state.creditList.reduce((total, credit) => total + parseFloat(credit.amount), 0);
-    const totalDebits = this.state.debitList.reduce((total, debit) => total + parseFloat(debit.amount), 0);
-    return (totalCredits - totalDebits).toFixed(2);
-  }
-
-  // Method to add a new credit
-  addCredit = (newCredit) => {
-    this.setState((prevState) => ({
-      creditList: [...prevState.creditList, newCredit]
-    }), () => {
-      this.setState({ accountBalance: this.updateAccountBalance() });
+    const totalCredits = this.state.credits.reduce(
+      (total, credit) => total + parseFloat(credit.amount),
+      0
+    );
+    const totalDebits = this.state.debits.reduce(
+      (total, debit) => total + parseFloat(debit.amount),
+      0
+    );
+    this.setState({
+      accountBalance: (totalCredits - totalDebits).toFixed(2),
     });
-  }
+  };
+  
+  // Method to add a new credit
+  addCredit = (description, amount) => {
+    const newCredit = {
+      description,
+      amount: parseFloat(amount),
+      date: new Date().toISOString().split('T')[0], // current date in yyyy-mm-dd format
+    };
+
+    this.setState(
+      (prevState) => ({
+        credits: [...prevState.credits, newCredit],
+      }),
+      this.updateAccountBalance
+    );
+  };
 
   // Method to add a new debit
-  addDebit = (newDebit) => {
-    this.setState((prevState) => ({
-      debitList: [...prevState.debitList, newDebit]
-    }), () => {
-      this.setState({ accountBalance: this.updateAccountBalance() });
-    });
-  }
+  addDebit = (description, amount) => {
+    const newDebit = {
+      description,
+      amount: parseFloat(amount),
+      date: new Date().toISOString().split('T')[0], // current date in yyyy-mm-dd format
+    };
+
+    this.setState(
+      (prevState) => ({
+        debits: [...prevState.debits, newDebit],
+      }),
+      this.updateAccountBalance
+    );
+  };
 
   render() {
-    const HomeComponent = () => (
-      <Home accountBalance={this.updateAccountBalance()} />
-    );
-    const UserProfileComponent = () => (
-      <UserProfile
-        userName={this.state.currentUser.userName}
-        memberSince={this.state.currentUser.memberSince}
-      />
-    );
-    const LogInComponent = () => (
-      <LogIn user={this.state.currentUser} mockLogIn={this.mockLogIn} />
-    );
-    const CreditsComponent = () => (
-      <Credits
-        credits={this.state.creditList}
-        accountBalance={this.updateAccountBalance()}
-        addCredit={this.addCredit}
-      />
-    );
-    const DebitsComponent = () => (
-      <Debits
-        debits={this.state.debitList}
-        accountBalance={this.updateAccountBalance()}
-        addDebit={this.addDebit}
-      />
-    );
-
     return (
       <Router basename="/my-react-app">
         <div>
-          <Route exact path="/" render={HomeComponent} />
-          <Route exact path="/userProfile" render={UserProfileComponent} />
-          <Route exact path="/login" render={LogInComponent} />
-          <Route exact path="/credits" render={CreditsComponent} />
-          <Route exact path="/debits" render={DebitsComponent} />
+          <nav>
+            <Link to="/">Home</Link> | <Link to="/credits">Credits</Link> | <Link to="/debits">Debits</Link>
+          </nav>
+
+          <Switch>
+            <Route
+              exact
+              path="/"
+              render={() => <Home accountBalance={this.state.accountBalance} />}
+            />
+            <Route
+              exact
+              path="/credits"
+              render={() => (
+                <Credits
+                  credits={this.state.credits}
+                  addCredit={this.addCredit}
+                  accountBalance={this.state.accountBalance}
+                />
+              )}
+            />
+            <Route
+              exact
+              path="/debits"
+              render={() => (
+                <Debits
+                  debits={this.state.debits}
+                  addDebit={this.addDebit}
+                  accountBalance={this.state.accountBalance}
+                />
+              )}
+            />
+          </Switch>
         </div>
       </Router>
     );
