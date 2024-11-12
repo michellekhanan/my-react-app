@@ -46,6 +46,26 @@ class App extends Component {
     return totalCredits - totalDebits;
   }
 
+  addCredit = (description, amount) => {
+    const newCredit = { description, amount: parseFloat(amount) };
+    this.setState((prevState) => ({
+      creditList: [...prevState.creditList, newCredit],
+      accountBalance: prevState.accountBalance + parseFloat(amount)
+    }));
+  };
+
+  addDebit = (description, amount) => {
+    const newDebit = {
+      description,
+      amount: parseFloat(amount),
+      date: new Date().toISOString().split('T')[0] // Current date in YYYY-MM-DD format
+    };
+    this.setState((prevState) => ({
+      debitList: [...prevState.debitList, newDebit],
+      accountBalance: prevState.accountBalance - parseFloat(amount)
+    }));
+  };
+
   mockLogIn = (logInInfo) => {
     const newUser = { ...this.state.currentUser, userName: logInInfo.userName };
     this.setState({ currentUser: newUser });
@@ -64,11 +84,55 @@ class App extends Component {
           </nav>
 
           <Switch>
-            <Route exact path="/" render={() => <Home accountBalance={this.state.accountBalance} />} />
-            <Route exact path="/userProfile" render={() => <UserProfile userName={this.state.currentUser.userName} memberSince={this.state.currentUser.memberSince} />} />
-            <Route exact path="/login" render={() => <LogIn user={this.state.currentUser} mockLogIn={this.mockLogIn} />} />
-            <Route exact path="/credits" render={() => <Credits credits={this.state.creditList} />} />
-            <Route exact path="/debits" render={() => <Debits debits={this.state.debitList} />} />
+            <Route 
+              exact 
+              path="/" 
+              render={() => (
+                <Home accountBalance={this.state.accountBalance} />
+              )} 
+            />
+            <Route 
+              exact 
+              path="/userProfile" 
+              render={() => (
+                <UserProfile 
+                  userName={this.state.currentUser.userName} 
+                  memberSince={this.state.currentUser.memberSince} 
+                />
+              )} 
+            />
+            <Route 
+              exact 
+              path="/login" 
+              render={() => (
+                <LogIn 
+                  user={this.state.currentUser} 
+                  mockLogIn={this.mockLogIn} 
+                />
+              )} 
+            />
+            <Route 
+              exact 
+              path="/credits" 
+              render={() => (
+                <Credits 
+                  credits={this.state.creditList} 
+                  addCredit={this.addCredit} 
+                  accountBalance={this.state.accountBalance} 
+                />
+              )} 
+            />
+            <Route 
+              exact 
+              path="/debits" 
+              render={() => (
+                <Debits 
+                  debits={this.state.debitList} 
+                  addDebit={this.addDebit} 
+                  accountBalance={this.state.accountBalance} 
+                />
+              )} 
+            />
           </Switch>
         </div>
       </Router>
